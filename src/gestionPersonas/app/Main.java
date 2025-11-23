@@ -54,16 +54,64 @@ public class Main {
                         service.agregarPersona(persona);
                         break;
                     case 2:
-                        System.out.println("Función Eliminar aún no implementada.");
+                        service.imprimirPersonas();
+                        System.out.print("ID de la persona a eliminar: ");
+                        if (sc.hasNextInt()) {
+                            int idEliminar = sc.nextInt();
+                            sc.nextLine(); // limpiar buffer
+                            service.eliminarPersona(idEliminar);
+                        } else {
+                            System.out.println("Entrada inválida. Introduzca el ID (número entero).");
+                            sc.nextLine();
+                        }
                         break;
                     case 3:
-                        System.out.println("Función Actualizar aún no implementada.");
+                        service.imprimirPersonas();
+                        System.out.println("Actualizar los datos de la persona con el ID:");
+
+                        System.out.print("ID: ");
+                        int idAct = sc.nextInt();
+                        sc.nextLine();
+
+                        // Validar que el ID existe
+                        Persona existente = service.buscarPersonaPorId(idAct);
+
+                        if (existente == null) {
+                            System.out.println("No existe una persona con ese ID.");
+                            break;
+                        }
+
+                        System.out.println("\nPersona encontrada:");
+                        System.out.println(existente);
+
+                        System.out.print("Nuevo nombre: ");
+                        String nomAct = sc.nextLine();
+
+                        System.out.print("Nuevo apellido: ");
+                        String apeAct = sc.nextLine();
+
+                        System.out.print("Nueva edad: ");
+                        int edadAct = sc.nextInt();
+                        sc.nextLine();
+
+                        System.out.print("Nuevo email: ");
+                        String emailAct = sc.nextLine();
+
+                        // Crear SOLO un objeto con los datos modificados
+                        Persona datos = new Persona();
+                        datos.setId(idAct);
+                        datos.setNombre(nomAct);
+                        datos.setApellido(apeAct);
+                        datos.setEdad(edadAct);
+                        datos.setEmail(emailAct);
+
+                        service.actualizarPersona(datos);
                         break;
                     case 4:
-                        System.out.println("Función Deshacer aún no implementada.");
+                        service.deshacer();
                         break;
                     case 5:
-                        System.out.println("Función Rehacer aún no implementada.");
+                        service.rehacer();
                         break;
                     case 6:
                         service.mostrarLog();

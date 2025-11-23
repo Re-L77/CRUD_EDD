@@ -44,6 +44,56 @@ public class Lista {
             actual = actual.siguiente;
         }
     }
+//_________________________________________________________________________________________________________________________
+    public Persona eliminar(int id) {
+        if (cabeza == null) {
+            return null; 
+        }
 
-    // Aquí luego puedes agregar eliminar, buscar, actualizar...
+        // Caso 1: La cabeza es el nodo a eliminar
+        if (cabeza.dato.getId() == id) {
+            Persona personaEliminada = cabeza.dato;
+            cabeza = cabeza.siguiente; // Mover la cabeza al siguiente nodo
+            return personaEliminada;
+        }
+
+        // Caso 2: El nodo a eliminar está en medio o al final
+        Nodo actual = cabeza;
+        while (actual.siguiente != null) {
+            if (actual.siguiente.dato.getId() == id) {
+                Persona personaEliminada = actual.siguiente.dato;
+                // Saltar el nodo: el actual apunta al siguiente del nodo a eliminar
+                actual.siguiente = actual.siguiente.siguiente; 
+                return personaEliminada;
+            }
+            actual = actual.siguiente;
+        }
+
+        return null; // No se encontró el ID
+    }
+    
+    public Persona buscarPorId(int id){
+        Nodo actual = cabeza;
+        while (actual != null) {
+            if (actual.dato.getId() == id) {
+                return actual.dato;
+            }
+            actual = actual.siguiente;
+        }
+        return null;
+    }
+
+    public Persona reemplazarPersona(Persona persona) {
+        Nodo actual = cabeza;
+        while (actual != null) {
+            if (actual.dato.getId() == persona.getId()) {
+                Persona personaAnterior = actual.dato; // Guardar la persona anterior
+                actual.dato = persona; // Reemplazar con la nueva persona
+                return personaAnterior;
+            }
+            actual = actual.siguiente;
+        }
+        return null; // No se encontró la persona
+    }
+
 }
