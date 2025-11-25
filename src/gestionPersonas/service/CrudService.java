@@ -21,8 +21,84 @@ public class CrudService {
         log = new Log();
     }
 
-    public void agregarPersona(Persona persona) {
-        // Agregar a la lista
+    // Métodos de validación
+    private boolean validarTexto(String texto, String campo) {
+        if (texto == null || texto.trim().isEmpty()) {
+            System.out.println("Error: El " + campo + " no puede estar vacío.");
+            return false;
+        }
+
+        // No debe contener números
+        if (texto.matches(".*\\d.*")) {
+            System.out.println("Error: El " + campo + " no puede contener números.");
+            return false;
+        }
+
+        // Solo letras, espacios y algunos caracteres especiales
+        if (!texto.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s'-]+$")) {
+            System.out.println("Error: El " + campo + " contiene caracteres no válidos.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validarEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            System.out.println("Error: El email no puede estar vacío.");
+            return false;
+        }
+
+        // Validación básica de email
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        if (!email.matches(emailRegex)) {
+            System.out.println("Error: El formato del email no es válido.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validarEdad(int edad) {
+        if (edad < 0 || edad > 120) {
+            System.out.println("Error: La edad debe estar entre 0 y 120 años.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean existeId(int id) {
+        return listaPersonas.buscarPorId(id) != null;
+    }
+
+    public boolean agregarPersona(Persona persona) {
+        // Validar que no exista el ID
+        if (existeId(persona.getId())) {
+            System.out.println("Error: Ya existe una persona con el ID " + persona.getId() + ".");
+            return false;
+        }
+
+        // Validar nombre
+        if (!validarTexto(persona.getNombre(), "nombre")) {
+            return false;
+        }
+
+        // Validar apellido
+        if (!validarTexto(persona.getApellido(), "apellido")) {
+            return false;
+        }
+
+        // Validar email
+        if (!validarEmail(persona.getEmail())) {
+            return false;
+        }
+
+        // Validar edad
+        if (!validarEdad(persona.getEdad())) {
+            return false;
+        }
+
+        // Si todas las validaciones pasan, agregar a la lista
         listaPersonas.agregar(persona);
 
         // Crear acción para undo
@@ -36,6 +112,7 @@ public class CrudService {
         log.agregarEntrada(getTimestamp() + " alta " + persona.getId());
 
         System.out.println("Persona agregada con éxito: " + persona.getNombre() + " " + persona.getApellido());
+        return true;
     }
 
     public void mostrarLog() {
@@ -84,13 +161,33 @@ public class CrudService {
     }
 
     // metodo actualizar
-    public void actualizarPersona(Persona nuevosDatos) {
+    public boolean actualizarPersona(Persona nuevosDatos) {
         // Buscar primero
         Persona original = listaPersonas.buscarPorId(nuevosDatos.getId());
 
         if (original == null) {
             System.out.println("No existe una persona con ese ID.");
-            return;
+            return false;
+        }
+
+        // Validar nuevo nombre
+        if (!validarTexto(nuevosDatos.getNombre(), "nombre")) {
+            return false;
+        }
+
+        // Validar nuevo apellido
+        if (!validarTexto(nuevosDatos.getApellido(), "apellido")) {
+            return false;
+        }
+
+        // Validar nuevo email
+        if (!validarEmail(nuevosDatos.getEmail())) {
+            return false;
+        }
+
+        // Validar nueva edad
+        if (!validarEdad(nuevosDatos.getEdad())) {
+            return false;
         }
 
         // Crear copia para guardar en undo
@@ -124,6 +221,7 @@ public class CrudService {
         log.agregarEntrada(getTimestamp() + " modif " + original.getId());
 
         System.out.println("Persona actualizada correctamente.");
+        return true;
     }
 
     // Metodo deshacer
