@@ -60,11 +60,12 @@ public class CrudService {
         Persona personaEliminada = listaPersonas.eliminar(id);
 
         if (personaEliminada != null) {
-            
+
             // 2. Crear y registrar la acción "baja"
-            // Para una BAJA, el objeto eliminado va en personaAnterior (el estado "antes" de la acción)
+            // Para una BAJA, el objeto eliminado va en personaAnterior (el estado "antes"
+            // de la acción)
             Accion accion = new Accion("baja", personaEliminada, null, getTimestamp());
-            
+
             // 3. Gestionar las pilas (como en agregarPersona)
             undoStack.push(accion);
             redoStack = new Pila(); // Limpiar redoStack al hacer una nueva acción
@@ -78,9 +79,10 @@ public class CrudService {
         }
     }
 
-     public Persona buscarPersonaPorId(int id) {
+    public Persona buscarPersonaPorId(int id) {
         return listaPersonas.buscarPorId(id);
     }
+
     // metodo actualizar
     public void actualizarPersona(Persona nuevosDatos) {
         // Buscar primero
@@ -93,16 +95,24 @@ public class CrudService {
 
         // Crear copia para guardar en undo
         Persona copiaAnterior = new Persona(
-            original.getId(),
-            original.getNombre(),
-            original.getApellido(),
-            original.getEdad(),
-            original.getEmail(),
-            original.getFechaRegistro()
+                original.getId(),
+                original.getNombre(),
+                original.getApellido(),
+                original.getEdad(),
+                original.getEmail(),
+                original.getFechaRegistro());
+
+        // Crear copia de los nuevos datos
+        Persona copiaNueva = new Persona(
+                original.getId(), // Mantener el mismo ID
+                nuevosDatos.getNombre(),
+                nuevosDatos.getApellido(),
+                nuevosDatos.getEdad(),
+                nuevosDatos.getEmail(),
+                original.getFechaRegistro() // Mantener la fecha de registro original
         );
 
-        // Guardar para undo
-        undoStack.push(new Accion("modif", copiaAnterior, null, getTimestamp()));
+        undoStack.push(new Accion("modif", copiaAnterior, copiaNueva, getTimestamp()));
         redoStack = new Pila();
 
         // Aplicar cambios (sin tocar ID ni fechaRegistro)
@@ -115,41 +125,43 @@ public class CrudService {
 
         System.out.println("Persona actualizada correctamente.");
     }
-    //Metodo deshacer
+
+    // Metodo deshacer
     public void deshacer() {
-    if (undoStack.isEmpty()) {
-        System.out.println("No hay acciones para deshacer.");
-        return;
+        if (undoStack.isEmpty()) {
+            System.out.println("No hay acciones para deshacer.");
+            return;
+        }
+
+        Accion accion = undoStack.pop(); // Sacamos la última acción
+        redoStack.push(accion); // Se guarda para rehacer después
+
+        switch (accion.getTipo()) {
+
+            case "alta":
+                // Si fue ALTA → deshacer es ELIMINAR
+                listaPersonas.eliminar(accion.getPersonaNueva().getId());
+                System.out.println("Se deshizo: alta = eliminado");
+                break;
+
+            case "baja":
+                // Si fue BAJA → deshacer es VOLVER A AGREGAR
+                listaPersonas.agregar(accion.getPersonaAnterior());
+                System.out.println("Se deshizo: baja = restaurado");
+                break;
+
+            case "modif":
+                // Si fue MODIFICACIÓN → deshacer es regresar al estado anterior
+                listaPersonas.reemplazarPersona(accion.getPersonaAnterior());
+                System.out.println("Se deshizo: modificación = valores anteriores restaurados");
+                break;
+
+            default:
+                System.out.println("Acción desconocida.");
+        }
     }
 
-    Accion accion = undoStack.pop(); // Sacamos la última acción
-    redoStack.push(accion);          // Se guarda para rehacer después
-
-    switch (accion.getTipo()) {
-
-        case "alta":
-            // Si fue ALTA → deshacer es ELIMINAR
-            listaPersonas.eliminar(accion.getPersonaNueva().getId());
-            System.out.println("Se deshizo: alta = eliminado");
-            break;
-
-        case "baja":
-            // Si fue BAJA → deshacer es VOLVER A AGREGAR
-            listaPersonas.agregar(accion.getPersonaAnterior());
-            System.out.println("Se deshizo: baja = restaurado");
-            break;
-
-        case "modif":
-            // Si fue MODIFICACIÓN → deshacer es regresar al estado anterior
-            listaPersonas.reemplazarPersona(accion.getPersonaAnterior());
-            System.out.println("Se deshizo: modificación = valores anteriores restaurados");
-            break;
-
-        default:
-            System.out.println("Acción desconocida.");
-    }
-}
-    //Metodo rehacer 
+    // Metodo rehacer
     public void rehacer() {
         if (redoStack.isEmpty()) {
             System.out.println("No hay acciones para Rehacer.");
@@ -167,18 +179,19 @@ public class CrudService {
                 listaPersonas.agregar(accion.getPersonaNueva());
                 System.out.println("Rehecha acción (ALTA): Reagregada Persona ID " + accion.getPersonaNueva().getId());
                 break;
-                
+
             case "baja":
                 // Rehacer Eliminar = Volver a eliminar
-                listaPersonas.eliminar(accion.getPersonaAnterior().getId()); 
-                System.out.println("Rehecha acción (BAJA): Re-eliminada Persona ID " + accion.getPersonaAnterior().getId());
+                listaPersonas.eliminar(accion.getPersonaAnterior().getId());
+                System.out.println(
+                        "Rehecha acción (BAJA): Re-eliminada Persona ID " + accion.getPersonaAnterior().getId());
                 break;
 
             case "modif":
                 // Rehacer Modificar = Aplicar el estado Nuevo
-                // Se necesita un método 'reemplazarPorId' en Lista.java para esto
-                // listaPersonas.reemplazarPorId(accion.getPersonaNueva());
-                System.out.println("Rehecha acción (MODIF): Re-aplicada modificación en Persona ID " + accion.getPersonaNueva().getId());
+                listaPersonas.reemplazarPersona(accion.getPersonaNueva());
+                System.out.println("Rehecha acción (MODIF): Re-aplicada modificación en Persona ID "
+                        + accion.getPersonaNueva().getId());
                 break;
 
             default:
