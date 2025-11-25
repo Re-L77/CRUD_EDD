@@ -19,6 +19,40 @@ public class CrudService {
         undoStack = new Pila();
         redoStack = new Pila();
         log = new Log();
+
+        // Cargar datos de muestra
+        cargarDatosPrecargados();
+    }
+
+    private void cargarDatosPrecargados() {
+        System.out.println("Cargando datos de muestra...");
+
+        String fechaActual = getTimestamp();
+
+        // Persona 1
+        Persona persona1 = new Persona(1, "Juan", "Pérez", 25, "juan.perez@email.com", fechaActual);
+        listaPersonas.agregar(persona1);
+        log.agregarEntrada(fechaActual + " alta 1");
+
+        // Persona 2
+        Persona persona2 = new Persona(2, "María", "García", 30, "maria.garcia@email.com", fechaActual);
+        listaPersonas.agregar(persona2);
+        log.agregarEntrada(fechaActual + " alta 2");
+
+        // Persona 3
+        Persona persona3 = new Persona(3, "Carlos", "López", 28, "carlos.lopez@email.com", fechaActual);
+        listaPersonas.agregar(persona3);
+        log.agregarEntrada(fechaActual + " alta 3");
+
+        // Persona 4
+        Persona persona4 = new Persona(4, "Ana", "Martín", 35, "ana.martin@email.com", fechaActual);
+        listaPersonas.agregar(persona4);
+        log.agregarEntrada(fechaActual + " alta 4");
+
+        // Persona 5
+        Persona persona5 = new Persona(5, "Luis", "Rodríguez", 42, "luis.rodriguez@email.com", fechaActual);
+        listaPersonas.agregar(persona5);
+        log.agregarEntrada(fechaActual + " alta 5");
     }
 
     // Métodos de validación
@@ -239,18 +273,21 @@ public class CrudService {
             case "alta":
                 // Si fue ALTA → deshacer es ELIMINAR
                 listaPersonas.eliminar(accion.getPersonaNueva().getId());
+                log.agregarEntrada(getTimestamp() + " deshacer_alta " + accion.getPersonaNueva().getId());
                 System.out.println("Se deshizo: alta = eliminado");
                 break;
 
             case "baja":
                 // Si fue BAJA → deshacer es VOLVER A AGREGAR
                 listaPersonas.agregar(accion.getPersonaAnterior());
+                log.agregarEntrada(getTimestamp() + " deshacer_baja " + accion.getPersonaAnterior().getId());
                 System.out.println("Se deshizo: baja = restaurado");
                 break;
 
             case "modif":
                 // Si fue MODIFICACIÓN → deshacer es regresar al estado anterior
                 listaPersonas.reemplazarPersona(accion.getPersonaAnterior());
+                log.agregarEntrada(getTimestamp() + " deshacer_modif " + accion.getPersonaAnterior().getId());
                 System.out.println("Se deshizo: modificación = valores anteriores restaurados");
                 break;
 
@@ -275,12 +312,14 @@ public class CrudService {
             case "alta":
                 // Rehacer Agregar = Volver a agregar
                 listaPersonas.agregar(accion.getPersonaNueva());
+                log.agregarEntrada(getTimestamp() + " rehacer_alta " + accion.getPersonaNueva().getId());
                 System.out.println("Rehecha acción (ALTA): Reagregada Persona ID " + accion.getPersonaNueva().getId());
                 break;
 
             case "baja":
                 // Rehacer Eliminar = Volver a eliminar
                 listaPersonas.eliminar(accion.getPersonaAnterior().getId());
+                log.agregarEntrada(getTimestamp() + " rehacer_baja " + accion.getPersonaAnterior().getId());
                 System.out.println(
                         "Rehecha acción (BAJA): Re-eliminada Persona ID " + accion.getPersonaAnterior().getId());
                 break;
@@ -288,6 +327,7 @@ public class CrudService {
             case "modif":
                 // Rehacer Modificar = Aplicar el estado Nuevo
                 listaPersonas.reemplazarPersona(accion.getPersonaNueva());
+                log.agregarEntrada(getTimestamp() + " rehacer_modif " + accion.getPersonaNueva().getId());
                 System.out.println("Rehecha acción (MODIF): Re-aplicada modificación en Persona ID "
                         + accion.getPersonaNueva().getId());
                 break;
